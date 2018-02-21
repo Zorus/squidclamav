@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+use strict;
+
+use CGI;
+
+my $VERSION = '6.16';
+
+my $cgi = new CGI;
+
+my $url = CGI::escapeHTML(scalar $cgi->param('url')) || '';
+my $virus = CGI::escapeHTML(scalar $cgi->param('virus')) || CGI::escapeHTML(scalar $cgi->param('malware')) || '';
+my $source = CGI::escapeHTML(scalar $cgi->param('source')) || '';
+$source =~ s/\/-//;
+my $user = CGI::escapeHTML(scalar $cgi->param('user')) || '';
+
+my $TITLE_VIRUS = "SquidClamAv $VERSION: Virus detect&eacute!";
+my $subtitle = 'Nom du virus';
+my $errorreturn = 'Le fichier ne peut &ecirc;tre t&eacute;l&eacute;charg&eacute;.';
+my $urlerror = 'contient un virus';
+if ($virus =~ /Safebrowsing/) {
+	$TITLE_VIRUS = "SquidClamAv $VERSION: Page malveillante detect&eacute!";
+	$subtitle = 'Type de malware / pishing';
+	$urlerror = 'est signal&eacute;e comme &eacutetant une page malveillante';
+	$errorreturn = 'La page ne peut pas &ecirc;tre affich&eacute;e';
+}
+
+# Remove clamd infos
+$virus =~ s/stream: //;
+$virus =~ s/ FOUND//;
+
+print $cgi->header();
+
+print $cgi->start_html(-title => $TITLE_VIRUS, -bgcolor => "#353535");
+print qq{
+	<style type="text/css">
+		.visu {
+		border:1px solid #C0C0C0;
+		color:#FFFFFF;
+		position: relative;
+		min-width: 13em;
+		max-width: 52em;
+		margin: 4em auto;
+		border: 1px solid ThreeDShadow;
+		border-radius: 10px;
+		padding: 3em;
+		-moz-padding-start: 30px;
+		background-color: #8b0000;
+	}
+	.visu h2, .visu h3, .visu h4 {
+		font-size:130%;
+		font-family:"times new roman", times, serif;
+		font-style:normal;
+		font-weight:bolder;
+	}
+	</style>	
+	<div class="visu">
+	<h2>$TITLE_VIRUS</h2>
+	<hr>
+	<p>
+};
+print qq{
+	L'URL $url que vous avez demand&eacute;e $urlerror<br>
+	$subtitle: $virus
+};
+print qq{
+	<p>
+	$errorreturn
+	<p>
+	Origine: $source / $user
+	<p>
+	<hr>
+	<font color="blue">Powered by <a href="http://squidclamav.darold.net/">SquidClamAv $VERSION</a>.</font>
+	</div>
+};
+
+print $cgi->end_html();
+
+exit 0;

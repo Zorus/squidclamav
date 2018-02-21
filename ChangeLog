@@ -1,0 +1,295 @@
+2016-08-30 version 6.16
+
+This release fixes a major bug with debugs macro that can have
+bad side effects like printing an error after configuration reload
+an possibly some other wrong behaviors.
+
+  - Change log level of configuration reloading message.
+  - Show line in configuration file that can not be parsed
+    by add_pattern().
+  - Enclose debugs macro to avoid misusage. Thanks to Denis Volpato
+    Martins for the patch.
+  - Fix Apache complain "AH01215: CGI::param called in list context
+    from package main line 14, this can lead to vulnerabilities."
+    Thanks to thctlo for the report.
+
+Please upgrade asap.
+
+2016-01-18 version 6.15
+
+This release fixes a major bug of a buffer overflow in squidclamav safebrowsing
+and change the http response code in squidclamav redirection when a virus is
+found.
+
+  - Update copyrights
+  - Fix buffer overflow in squidclamav_safebrowsing(). Thanks to Stuart
+    Henderson for the patch.
+  - Change http response code 301 (move permanently) to 307 (temporary
+    redirect) in squidclamav redirection when a virus is found. Thanks to
+    Alexander Koch for the report.
+  - Fix null url, client ip and username in safebrowsing report. Thanks to
+    Claus Regelmann for the patch.
+
+2015-10-01 version 6.14
+
+This release fix a compilation issue with c-icap 0.4.x and exclude the HTTP
+method OPTIONS from being virus scanned.
+
+  - Fix compilation issue with C-icap 0.4.x replacement of hasalldata with
+    flags. Thanks to Akash Shende for the patch.
+  - Change configure and makefile templates to automatically adapt the code
+    following the c-icap version.
+  - Excluded OPTIONS http method from being scanned. Thanks to Yuri Voinov
+    for the report.
+  - Fix some ru_RU translation errors. Thanks to romale for the report.
+
+2015-06-01 version 6.13
+
+This release fix some minor issues and allow to use a file with a list of regular
+expression to be whitelisted.
+
+   - Fix some memory management issues. Thanks to mbechler for the patch.
+   - Fix typo in documentation
+   - Allow whitelist directive to receive a file as value import the whitelist
+     from another file. This file must only contain a list of regex (one per
+     line) to be whitelisted. Thanks to karlmendes for the feature request.
+   - Fix generated 403 response which was not correct. Thanks to Manoj
+     Ramakrishnan for the report and Christos Tsantilas for the fix.
+
+2014-12-28 version 6.12
+
+This release fixes the default path to configuration file to be the same as
+c-icap configuration directory. Some issues revealed by Coverity Scanner
+have been fixed as well as some code cleanup.
+
+	- Update year in copyright.
+	- Add more information about redirect directive to documentation and
+	  configuration file.
+	- Update documentation to be more explicit about the --with-c-icap
+	  configure option. Thanks to Yuri Voinov for the suggestion.
+	- Add configuration for squid 3.4.x to documentation. Thanks to Yuri
+	  Voinov for the patch.
+	- Set debug level to 2 for message "Can not begin to scan url: No
+	  preview data". Thanks to Marco Gaiarin for the suggestion.
+	- Fix creation of configuration direction at inistall time.
+	- Fix default path to squidclamav.conf. It is now always installed and
+	  searched in c-icap configuration directory. /etc/squidclamav.conf is
+	  no more used as default. Thanks to Oliver Seeburger for the report.
+	- The message about undefined squidguard directive has been changed.
+	- Change cast on content_length printing.
+	- Fix some issues returned by Coverity scanner.
+
+2014-03-11 version 6.11
+
+This release adds support to icap template allowing to display a templated
+response on block instead of redirecting to an external URL. Add new lines
+into HTTP and ICAP response header to set X-Infection-Found and X-Virus-ID
+when a virus is found. With the possiblity to scan data sent without preview
+this allow some commercial product like MoveIt DMZ to work with c-icap and
+squidclamav service. Lot of code clean up and bug fixes.
+
+	- Add X-Infection-Found and X-Virus-ID into icap response header.
+	  This allow some commercial product like MoveIt DMZ to work with
+	  c-icap/squidclamav service.
+	- Fix compilation issue with c-icap 1.6.x versions. Old version of
+	  c-icap ( < 0.2.x ) does not support icap template, this is now
+	  detected at configure time. Thanks to Graham Har for the report.
+	- Remove preview data enabling from mandatory option.
+	- Allow use of non HTTP request used by ICAP client like c-icap-client
+	  or request from commercial product such as Move It DMZ. For example:
+	    c-icap-client -i 127.0.0.1 -p 1344 -f eicar.zip \
+	    -s "squidclamav?allow204=on&force=on&sizelimit=off&mode=simple" -v
+	  Thanks to Henry ken for the feature request.
+	- Update Copyright
+	- Udapte auto generated configuration and make files and fix several
+	  compile time warning from squidclamav.c. Also fix an error message
+	  wrongly displayed at squidclamav.conf fd close time.
+	- Add MALWARE_FOUND icap template that will be displayed by Squid when
+	  a malware is found instead of redirecting to the CGI (when redirect
+	  configuration directive is not defined).
+	- Tested squidclamav with c-icap 0.3.2
+	- When there's no clamd running, die. bypass should be in the proxy
+	  setup instead of in squidclamav code. Thanks to Peter Molnar for
+	  the patch.
+	- Clean up HTTP Response headers. Thanks to Peter Molnar for the patch.
+	- Fix conflicting types for strnstr on freeBSD. Thanks to Mathias H for
+	  the report.
+	- Fix an issue on FreeBSD with squidclamav.conf parser reporting fatal
+	  error into add_pattern.
+	- Remove all of the built-in format tokens - these are included by c-icap,
+	  so no need to duplicate them here. Thanks to Nathan Hoad for the patch.
+	- Fix documentation about using template instead or redirect URL.
+	- Lots of code cleanup and debugs method, similar to what Squid uses.
+	  Thanks to Nathan Hoad for the patch.
+	- Updated all documentation to mention new behaviour in the absence of
+	  the redirection option. Thanks to Nathan Hoad for the patch.
+	- Displaying a templated response on block instead of redirecting.
+	  It supports all the format tokens that the LogFormat directive supports,
+	  plus %mn for displaying the virus name as identified by ClamAV. Thanks
+	  to Nathan Hoad for the patch.
+	- Don't stub out __FUNCTION__ unless we're definitely on Solaris. Thanks
+	  to Nathan Hoad for the patch.
+	- Provide a macro to make debug messages much nicer. This updates messages
+	  to display logs like so:
+	      squidclamav.c(252) squidclamav_close_service: DEBUG clean all memory!
+	  This makes debugging both nicer to read and write. Thanks to Nathan Hoad
+	  for the patch.
+	- Remove xfree, as any respectable compiler (i.e. one that follows the C
+	  standard) won't crash if you call free(3) on NULL. Thanks to Nathan Hoad
+	  for the patch.
+	- Normalise indentation and remove all trailing whitespace. No functional
+	  changes. Thanks to Nathan Hoad for the patch.
+
+2012-10-27 version 6.10
+
+        - Replace clamd STREAM by zINSTREAM protocol as clamav have removed
+          the obsolete STREAM protocol in release 0.97.4. Thanks to Vasan and
+          Raja Lakshmi for the report.
+
+2012-08-26 version 6.9
+
+	- Add 'safebrowsing' configuration directive to enable/disable
+	  Safe Browsing detection.
+	- Fix support to Clamav Google Safe Browsing that need a second
+	  query to clamd because the url need to be embeded in an email
+	  like content. Thanks to frOgz for the report.
+	- Documentation updated for safebrowsing and proxy configuration
+	  variables.
+	- All redirect CGI scripts have been rewritten with some CSS and
+	  to better handle virus vs malware. Thanks to frOgz for the patches.
+	- Tested SquidClamav with Squid 3.2 successfuly.
+
+2012-07-26 version 6.8
+
+	- Compatibility fix with new c-icap 0.2.1 release that prevent
+	  squidclamav service to be initialized. Thanks to Martin Matuska
+	  for the patch.
+	- Fix issue with new c-icap 0.2.1 release that generate an error
+	  error each time squidclamav return CI_MOD_204 in end of data
+	  handler function. Thanks to Martin Matuska or the patch.
+
+2012-07-24 version 6.7
+
+	- Add a workaround for a squidGuard bug that unescape the URL and
+	  send it back unescaped. This result in garbage staying into pipe
+	  of the system command call and could crash squidclamav on next
+	  read or return false information. This is specially true with URL
+	  containing the %0D or %0A character. Thanks to John Xue for the
+	  report.
+	- Update documentation about the recommanded way to call squidGuard
+	  through the use of url_rewrite_program in squid.conf. You may not
+	  use the squidguard configuration directive into squidclamav.conf.
+
+2012-05-28 version 6.6
+
+	- Rewrite entirely the squidclamav behavior with the maxsize directive.
+	  The previous fix was only a workaround.
+	- Fix a bug on 'trustclient' check part that was never executed if
+	  dnslookup was disabled. Thanks to Tinu for the report.
+
+2012-01-15 version 6.5
+
+	- Fix a squidclamav crash when maxsize is removed from configuration
+	  file or disabled/set to 0. Thanks to Pascal Bendeich for the report.
+	- Fix an issue when downloaded file size is upper than clamd.conf limit
+	  set into the StreamMaxLength configuration directive. Thanks to Arnvid
+	  Karstad for the report.
+	- All cgi Perl script have been modified to report unsafe browsing.
+	- Add a note about ClamAV and the support for Google Safe Browsing
+	  database. As clamd will returned something like:
+		Safebrowsing.<something> FOUND
+	  this will be redirected by squidclamav just like if a virus was found.
+	  Thanks to Michael Grasso for the request.
+
+
+2011-08-19 version 6.4
+
+	- Change default value for clamd_local configuration directive to the
+	  common package default clamd local socket '/var/run/clamav/clamd.ctl'.
+	- The origin of the double free corruption was partially found in last
+	  release. It is now completely fixed. Thanks to Tim Weippert for the
+	  report.
+	- The call to squidGuard from SquidClamav by a bidirectional pipe seem
+	  to make squid/c-icap system going slower and slower. The reason comes
+	  from more and more pending squidGuard processes after c-icap thread
+	  restarting. The historical reason of this feature is related to Squid
+	  version 2.x that doesn't allow to chained url_rewrite_program. I think
+	  this is no more useful so the squidguard configuration directive will
+	  be removed in next major release. Thank to Marco Schuth and David
+	  Tannheimeri for the report.
+	  You'd better use the Squid configuration file (squid.conf) and the
+	  'url_rewrite_program' directive to use squidGuard. There's no plan to
+	  reintroduce the call to squidGuard from SquidClamav at least until
+	  squidGuard has a daemon mode or you really asked for it.
+	- Fix an issue on reallocating mishandled null pattern array.
+
+
+2011-06-26 version 6.3
+
+	- Remove obsolete code on log_file configuration directive.
+	- Fix double free corruption when sending a configuration reload
+	  command: echo -n "squidclamav:cfgreload" >> /var/run/c-icap/c-icap.ctl
+	  Thanks to David Tannheimer for the report. This bug appears only when
+	  using local Unix socket to connect clamd.
+	- Compatibility check with c-icap-0.1.6: ok
+
+2011-02-26 version 6.2
+
+	- Fix squidclamav crash when X-Client-IP is not forwarded by default
+	  from squid to icap, i-e: when 'icap_send_client_ip on' is not set
+	  into squid.conf. Thanks to Diego Elio Pettenò for the patch.
+	- Force client Ip and Username to '-' when they are not set or null.
+	  Thanks to Alex for the report.
+	- Fix a signal 11 when username was not set.
+	- Add new configuration option 'dnslookup' to disable DNS lookup of
+	  client ip address. Default is enabled for backward compatibility but
+	  you may desactivate this feature if you don't use trustclient with
+	  hostname in the regexp. Disabling it will also speed up squidclamav.
+
+2010-10-29 version 6.1
+
+	- Add missing "#include <signal.h>", compilation on BSD and possibly
+	  other distribution was not working. Thanks to Alex for the report.
+	- Fix segmentation fault by gethostbyaddr when remote client can't be
+	  resolved. Thank to Valery for the report.
+
+2010-10-21 version 6.0
+
+	This is the initial release of the v6.x branch. It works exactly as
+	v5.x branch except that it now use the ICAP protocol and must be run
+	as a c-icap server service. The goal of this first release is to port
+	SquidClamav to the ICAP protocol to solve all limitations encountered
+	in the previous releases (audio/video streaming, site with session like
+	webmail, support of POST request, etc).
+
+	Next release will tend to have real on stream scanning and bypass the
+	size limitation. Coming soon, but I first want to be sure that c-icap
+	is the good choose for stability and performance but also that this new 
+	branch is stable and speed enough. I hope you make me feedback.
+
+	This release needs squid v3.x and the c-icap server.
+
+	Also there's no packaging available yet.
+
+	The squidclamav.conf configuration file from v5.x is fully compatible
+	but some directives are now obsolete, here is the list:
+
+		squid_ip
+		squid_port
+		maxredir
+		useragent
+		trust_cache
+		stat
+		debug
+		clamd_timeout
+
+	One have change, this is the 'timeout' directive that was used to set
+	the timeout for libcurl download. As cURL is no more used, this timeout
+	directive is now used to set the timeout for clamd connect. His default
+	value is 1 second and can be set up to 10.
+
+	Others works as before.
+
+	YOU MUST tune the c-icap server following your need (number of users),
+	see http://squidclamav.darold.net/tuning.html for the configuration
+	directive that could help.
