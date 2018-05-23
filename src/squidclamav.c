@@ -119,6 +119,8 @@ int logredir = 0;
 int dnslookup = 1;
 int safebrowsing = 0;
 
+FILE* logFile;
+
 /* Used by pipe to squidGuard */
 int usepipe = 0;
 pid_t pid;
@@ -214,6 +216,9 @@ int squidclamav_init_service(ci_service_xdata_t * srv_xdata,
         return CI_ERROR;
     }
 
+    // Open the log file
+    logFile = fopen(LOG_FILE, "w");
+
     return CI_OK;
 }
 
@@ -271,6 +276,7 @@ int squidclamav_post_init_service(ci_service_xdata_t * srv_xdata,
 void squidclamav_close_service()
 {
     debugs(1, "DEBUG clean all memory!\n");
+    fclose(logFile);
     free_global();
     free_pipe();
     ci_object_pool_unregister(AVREQDATA_POOL);
@@ -683,6 +689,7 @@ int squidclamav_end_of_data_handler(ci_request_t * req)
 
     if (data->virus) {
         debugs(1, "DEBUG Virus found, sending redirection header / error page.\n");
+
         return CI_MOD_DONE;
     }
 
@@ -1537,6 +1544,22 @@ void generate_template_page(ci_request_t *req, av_req_data_t *data)
     ci_icap_add_xheader(req, buf);
     ci_http_response_add_header(req, buf);
 
+    // Log virus found - timestamp url selector-user virus +++
+    int t = ftell(logFile);
+    fseek(logFile, t, SEEK_END);
+
+    int ret = fprintf(logFile,
+    		"%lu %s %s %s\n",
+    		(unsigned long) time(NULL),
+			data->url,
+			data->user,
+			(malware[0] != '\0') ? malware : "Unknown"
+			);
+
+    fflush(logFile);
+
+    // +++
+
     /*
 	The TypeID can currently be one of the following three values: zero for
 	virus infections, one for mail policy violations (e.g. illegal file
@@ -1631,7 +1654,6 @@ void generate_redirect_page(char * redirect, ci_request_t * req, av_req_data_t *
         ci_membuf_write(error_page, (char *) blocked_footer_message, strlen(blocked_footer_message), 1);
     }
     debugs(3, "DEBUG done\n");
-
 }
 
 int create_pipe(char *command)

@@ -90,6 +90,8 @@ struct IN_BUFF {
 
 #define PATTERN_ARR_SIZE 32	/* Array of 32 patterns */
 
+#define LOG_FILE "/var/log/squidclamav.log"
+
 struct IP {
     short first;
     short second;
