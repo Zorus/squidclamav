@@ -118,6 +118,7 @@ ci_off_t maxsize = 0;
 int logredir = 0;
 int dnslookup = 1;
 int safebrowsing = 0;
+int avDisabled = 0;
 
 FILE* logFile;
 
@@ -339,6 +340,7 @@ int squidclamav_check_preview_handler(char *preview_data, int preview_data_len,
     struct hostent *clientname;
     unsigned long ip;
     const char *username;
+    const char *av;
     const char *content_type;
     ci_off_t content_length = 0;
     int chkipdone = 0;
@@ -351,6 +353,13 @@ int squidclamav_check_preview_handler(char *preview_data, int preview_data_len,
 
     /* Extract the HTTP header from the request */
     if ((req_header = ci_http_request_headers(req)) != NULL) {
+    	if((av = ci_headers_value(req->request_header, "X-Disable-AV")) != NULL) {
+    		avDisabled = 1;
+    	}
+
+    	if(avDisabled){
+    		return CI_MOD_ALLOW204;
+    	}
 
 	    /* Get the Authenticated user */
 	    if ((username = ci_headers_value(req->request_header, "X-Authenticated-User")) != NULL) {
@@ -598,6 +607,10 @@ int squidclamav_end_of_data_handler(ci_request_t * req)
     unsigned long total_read;
 
     debugs(2, "DEBUG ending request data handler.\n");
+
+	if(avDisabled){
+		return CI_MOD_ALLOW204;
+	}
 
     /* Nothing more to scan */
     if (!data || !data->body)
@@ -1559,6 +1572,7 @@ void generate_template_page(ci_request_t *req, av_req_data_t *data)
     fflush(logFile);
 
     // +++
+
 
     /*
 	The TypeID can currently be one of the following three values: zero for
