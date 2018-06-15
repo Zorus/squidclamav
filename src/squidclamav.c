@@ -1524,6 +1524,15 @@ int fmt_malware(ci_request_t *req, char *buf, int len, const char *param)
    return strlen(buf);
 }
 
+char* replace_char(char* str, char find, char replace){
+    char *current_pos = strchr(str,find);
+    while (current_pos){
+        *current_pos = replace;
+        current_pos = strchr(current_pos,find);
+    }
+    return str;
+}
+
 void generate_template_page(ci_request_t *req, av_req_data_t *data)
 {
     char buf[LOG_URL_SIZE];
@@ -1560,7 +1569,7 @@ void generate_template_page(ci_request_t *req, av_req_data_t *data)
     		"%lu %s %s %s\n",
     		(unsigned long) time(NULL),
 			data->url,
-			data->user,
+			replace_char(data->user, '/', '-'),
 			(malware[0] != '\0') ? malware : "Unknown"
 			);
 
