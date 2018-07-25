@@ -1565,6 +1565,10 @@ void generate_template_page(ci_request_t *req, av_req_data_t *data)
     int t = ftell(logFile);
     fseek(logFile, t, SEEK_END);
 
+    for(int i = 0; data->url[i]; i++){
+        data->url[i] = tolower(data->url[i]);
+    }
+	
     int ret = fprintf(logFile,
     		"%lu %s %s %s\n",
     		(unsigned long) time(NULL),
